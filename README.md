@@ -70,4 +70,33 @@ Use este projeto se seu headset apresentar:
 - áudio apenas em um lado  
 - microfone que para de funcionar  
 - problemas ao alterar volume  
-- falhas ao alternar entre cabo e wireless 
+- falhas ao alternar entre cabo e wireless
+
+## How to Use
+
+1. Clone o repositório:
+
+```
+git clone https://github.com/jeffrichardchemistry/fixfuxi.git
+cd fixfuxi
+```
+
+2. Torne o script executável:
+
+```
+chmod +x FixFuxiH3.sh
+```
+
+3. Execute o script:
+
+```
+./FixFuxiH3.sh
+```
+
+4. Reinicie o sistema:
+
+```
+reboot
+```
+
+Após reiniciar, o sistema de áudio estará configurado para funcionar corretamente com headsets USB.
