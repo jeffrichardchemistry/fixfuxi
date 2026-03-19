@@ -1,5 +1,5 @@
 # fixfuxi
-Um script para resolver problemas de audio e microfone do headset fixfuxi e potenciais outros headsets sem fio no linux.
+Um script para resolver problemas de audio e microfone do headset Fuxi e potenciais outros headsets sem fio no linux.
 
 
 # USB Headset Audio Fix (Linux / PipeWire)
