@@ -12,7 +12,6 @@ CONF_FILE="$CONFIG_DIR/51-usb-headset-fix.conf"
 ALSA_FILE="/etc/modprobe.d/usb-headset.conf"
 
 echo "Criando diretório de configuração do WirePlumber..."
-
 mkdir -p "$CONFIG_DIR"
 
 echo "Gerando patch de áudio para headsets USB..."
@@ -45,10 +44,16 @@ monitor.alsa.rules = [
         # corrige stereo
         audio.channels = 2
         audio.position = [ FL FR ]
-        
+
         # evita fallback mono
         api.alsa.use-acp = false
 
+        # melhora inicialização do áudio
+        api.alsa.start-delay = 1
+
+        # força volume inicial
+        node.initial-volume = 1.0
+        node.volume = 1.0
       }
     }
   }
@@ -71,7 +76,6 @@ else
 fi
 
 echo "Configuração ALSA aplicada."
-
 echo ""
 
 echo "Reiniciando serviços de áudio..."
@@ -81,7 +85,21 @@ systemctl --user restart pipewire
 systemctl --user restart pipewire-pulse 2>/dev/null || true
 
 echo ""
+echo "Ajustando mixers ALSA (fix PCM)..."
 
+# aguarda devices aparecerem
+sleep 2
+
+# detecta placas USB automaticamente
+CARDS=$(cat /proc/asound/cards | grep -i usb | awk -F'[][]' '{print $2}')
+
+for CARD in $CARDS; do
+    echo "Ajustando placa: $CARD"
+    amixer -c "$CARD" sset PCM 100%,100% 2>/dev/null || true
+    amixer -c "$CARD" sset 'PCM 1' 100% 2>/dev/null || true
+done
+
+echo ""
 echo "=========================================="
 echo "Correção aplicada com sucesso."
 echo ""
