@@ -1,46 +1,46 @@
 # fixfuxi
-Um script para resolver problemas de audio e microfone do headset Fuxi e potenciais outros headsets sem fio no linux.
+A script to fix audio and microphone issues on the Fuxi headset and potentially other wireless headsets on Linux.
 
 
 # USB Headset Audio Fix (Linux / PipeWire)
 
-Correção automática para problemas comuns de **headsets USB no Linux**, especialmente em sistemas que utilizam **PipeWire + WirePlumber**.
+Automatic fix for common **USB headset issues on Linux**, especially on systems using **PipeWire + WirePlumber**.
 
-Este projeto ajusta o comportamento do sistema de áudio para garantir funcionamento correto de headsets USB gamer, tanto **via cabo** quanto **via dongle wireless**.
-
----
-
-## Problemas que este projeto resolve
-
-Alguns headsets USB apresentam falhas no Linux devido a limitações do mixer interno do dispositivo. Entre os problemas mais comuns:
-
-- áudio funcionando apenas em **um lado do headset**
-- **microfone iniciando zerado**
-- falhas ao **reduzir o volume do sistema**
-- problemas ao alternar entre **modo USB e wireless**
-- dispositivo entrando em **suspensão automática**
-- PipeWire configurando canais de áudio incorretamente
+This project adjusts audio system behavior to ensure USB gaming headsets work correctly, both **wired** and **through a wireless dongle**.
 
 ---
 
-## Como funciona
+## Problems This Project Solves
 
-A solução ajusta a política de áudio do **PipeWire/WirePlumber**, fazendo com que o sistema utilize **controle de volume em software** em vez do mixer interno do headset.
+Some USB headsets fail on Linux due to limitations in the device's internal mixer. Common issues include:
 
-Isso evita problemas comuns em dispositivos USB que possuem mixers defeituosos ou incompletos.
-
-Com isso o sistema passa a ter:
-
-- áudio estéreo funcionando corretamente  
-- microfone estável após reinicialização  
-- troca entre **USB e wireless** sem falhas  
-- volume do sistema funcionando normalmente  
+- audio working on only **one side of the headset**
+- **microphone starting muted or at zero**
+- failures when **lowering system volume**
+- issues when switching between **USB and wireless mode**
+- device entering **automatic suspend**
+- PipeWire configuring audio channels incorrectly
 
 ---
 
-## Compatibilidade
+## How It Works
 
-Funciona em distribuições Linux modernas que utilizam **PipeWire**, como:
+The solution adjusts **PipeWire/WirePlumber** audio policy so the system uses **software volume control** instead of the headset's internal mixer.
+
+This avoids common issues in USB devices with broken or incomplete mixers.
+
+As a result, the system gets:
+
+- properly working stereo audio  
+- stable microphone behavior after reboot  
+- reliable switching between **USB and wireless**  
+- normal system volume behavior  
+
+---
+
+## Compatibility
+
+Works on modern Linux distributions that use **PipeWire**, such as:
 
 - Ubuntu
 - Linux Mint
@@ -49,54 +49,134 @@ Funciona em distribuições Linux modernas que utilizam **PipeWire**, como:
 - Pop!_OS
 - Nobara
 - Garuda
-- outras distribuições baseadas em PipeWire
+- other PipeWire-based distributions
 
 ---
 
-## Dispositivos suportados
+## Supported Devices
 
-Embora tenha sido criado para o **Fuxi H3**, o projeto funciona com a maioria dos **headsets USB gamer**, incluindo:
+Although it was created for the **Fuxi H3**, this project works with most **USB gaming headsets**, including:
 
-- headsets USB com fio  
-- headsets wireless com dongle USB  
-- dispositivos identificados como **USB Audio**
+- wired USB headsets  
+- wireless headsets with a USB dongle  
+- devices identified as **USB Audio**
 
 ---
 
-## Quando usar
+## When to Use
 
-Use este projeto se seu headset apresentar:
+Use this project if your headset has:
 
-- áudio apenas em um lado  
-- microfone que para de funcionar  
-- problemas ao alterar volume  
-- falhas ao alternar entre cabo e wireless
+- one-sided audio  
+- microphone that stops working  
+- problems when changing volume  
+- issues switching between cable and wireless
 
 ## How to Use
 
-1. Clone o repositório:
+1. Clone the repository:
 
 ```
 git clone https://github.com/jeffrichardchemistry/fixfuxi.git
 cd fixfuxi
 ```
 
-2. Torne o script executável:
+2. Make the scripts executable:
 
 ```
 chmod +x FixFuxiH3.sh
+chmod +x fuxi_alsa_100.sh
 ```
 
-3. Execute o script:
+3. Run the script:
 
 ```
 ./FixFuxiH3.sh
 ```
 
-4. Reinicie o sistema:
+The script performs three operations automatically:
+
+- applies the WirePlumber stability patch
+- applies the ALSA output volume adjustment to 100% for Fuxi cards
+- installs user-level systemd persistence to reapply settings at session startup and periodically (covers headset reconnection)
+- retries card detection and volume application during boot/login (automatic retries)
+
+4. Restart your session or system (optional, recommended the first time):
 
 ```
 reboot
 ```
 
-Após reiniciar, o sistema de áudio estará configurado para funcionar corretamente com headsets USB.
+After restarting, your audio system should be correctly configured for USB headsets.
+
+## Execution Modes
+
+### Adjust only Fuxi output volume (manual)
+
+```
+./FixFuxiH3.sh --volume-only
+```
+
+Ou via wrapper legado:
+
+```
+./fuxi_alsa_100.sh
+```
+
+### Install/update persistence only
+
+```
+./FixFuxiH3.sh --install-only
+```
+
+### Run without installing persistence
+
+```
+./FixFuxiH3.sh --no-persist
+```
+
+### Run with detailed logs
+
+```
+./FixFuxiH3.sh --debug
+```
+
+## Persistence (systemd --user)
+
+Automatically installed files:
+
+- ~/.config/systemd/user/fixfuxi-volume.service
+- ~/.config/systemd/user/fixfuxi-volume.timer
+
+Behavior:
+
+- runs at user session startup
+- reapplies settings continuously every 20 seconds
+- covers dongle/headset reconnection during the session
+- at boot/login, retries while waiting for Fuxi cards to become available
+- persistent service runs with detailed logs enabled
+
+Useful commands:
+
+```
+systemctl --user status fixfuxi-volume.timer
+systemctl --user status fixfuxi-volume.service
+journalctl --user -u fixfuxi-volume.service -n 50 --no-pager
+journalctl --user -u fixfuxi-volume.service -f
+```
+
+## Uninstall Persistence
+
+```
+systemctl --user disable --now fixfuxi-volume.timer
+rm -f ~/.config/systemd/user/fixfuxi-volume.service
+rm -f ~/.config/systemd/user/fixfuxi-volume.timer
+systemctl --user daemon-reload
+```
+
+## Quick Troubleshooting
+
+- If no Fuxi card is found, connect the headset and run `aplay -l` to validate detection.
+- If the headset appears a few seconds after login, wait for automatic retries (up to ~30s).
+- If microphone gain becomes too high or clips, this project does not force capture controls to 100%.
+- If `wireplumber.service` does not exist in your environment, volume adjustment still works through ALSA.
