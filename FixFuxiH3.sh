@@ -37,12 +37,7 @@ get_control_percent() {
   card="$1"
   control="$2"
 
-  amixer -c "$card" sget "$control" 2>/dev/null | awk '
-    match($0, /\[([0-9]+)%\]/, a) {
-      print a[1]
-      exit
-    }
-  '
+  amixer -c "$card" sget "$control" 2>/dev/null | sed -n 's/.*\[\([0-9][0-9]*\)%\].*/\1/p' | head -n 1
 }
 
 usage() {
